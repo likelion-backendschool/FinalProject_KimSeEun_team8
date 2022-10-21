@@ -1,10 +1,9 @@
 package com.ll.exam.sen_books.app.post.service;
 
-import com.ll.exam.sen_books.app.hashTag.entity.HashTag;
 import com.ll.exam.sen_books.app.hashTag.service.HashTagService;
 import com.ll.exam.sen_books.app.member.entity.Member;
+import com.ll.exam.sen_books.app.post.dto.CreatePost;
 import com.ll.exam.sen_books.app.post.entity.Post;
-import com.ll.exam.sen_books.app.post.form.PostForm;
 import com.ll.exam.sen_books.app.post.repository.PostRepository;
 import com.ll.exam.sen_books.util.Ut;
 import lombok.RequiredArgsConstructor;
@@ -22,23 +21,23 @@ public class PostService {
     private final HashTagService hashTagService;
 
     @Transactional
-    public Post write(Member author, PostForm postForm) {
+    public Post write(Member author, CreatePost createPostDto) {
         Post post = Post.builder()
-                .subject(postForm.getSubject())
+                .subject(createPostDto.getSubject())
                 .author(author)
-                .contentHtml(Ut.markdown(postForm.getContent()))
-                .content(postForm.getContent())
-                .hashTagContent(postForm.getHashTagContents())
+                .contentHtml(Ut.markdown(createPostDto.getContent()))
+                .content(createPostDto.getContent())
+                .hashTagContent(createPostDto.getHashTagContents())
                 .build();
 
         postRepository.save(post);
 
-        hashTagService.applyHashTags(post, postForm.getHashTagContents());
+        hashTagService.applyHashTags(post, createPostDto.getHashTagContents());
 
         return post;
     }
 
-    public Optional<Post> findById(long id) {
+    public Optional<Post> getPostId(long id) {
         return postRepository.findById(id);
     }
 
@@ -48,22 +47,12 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public Optional<Post> findForPrintById(long id) {
-        Optional<Post> post = findById(id);
-
-        List<HashTag> hashTags = hashTagService.getHashTags(post.get());
-
-        if (post.isEmpty()) return post;
-
-        return post;
-    }
-
     @Transactional
     public void delete(Post post) {
         postRepository.delete(post);
     }
 
-    public List<Post> findAllByAuthorId(Long id) {
+    public List<Post> getAllAuthorId(Long id) {
         return postRepository.findAllByAuthorId(id);
     }
 }

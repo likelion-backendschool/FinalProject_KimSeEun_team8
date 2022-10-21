@@ -2,8 +2,9 @@ package com.ll.exam.sen_books.app.post.controller;
 
 
 import com.ll.exam.sen_books.app.member.entity.Member;
+import com.ll.exam.sen_books.app.post.dto.CreatePost;
+import com.ll.exam.sen_books.app.post.dto.ModifyPostDto;
 import com.ll.exam.sen_books.app.post.entity.Post;
-import com.ll.exam.sen_books.app.post.form.PostForm;
 import com.ll.exam.sen_books.app.post.service.PostService;
 import com.ll.exam.sen_books.app.security.dto.MemberContext;
 import com.ll.exam.sen_books.util.Ut;
@@ -37,9 +38,9 @@ public class PostController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/write")
-    public String write(@AuthenticationPrincipal MemberContext memberContext, @Valid PostForm postForm) {
+    public String write(@AuthenticationPrincipal MemberContext memberContext, @Valid CreatePost createPostDto) {
         Member author = memberContext.getMember();
-        Post post = postService.write(author, postForm);
+        Post post = postService.write(author, createPostDto);
         return "redirect:/post/" + post.getId() + "?msg=" + Ut.url.encode("%d번 글이 생성되었습니다.".formatted(post.getId()));
     }
 
@@ -48,7 +49,7 @@ public class PostController {
     public String showList(@AuthenticationPrincipal MemberContext memberContext, Model model) {
         Member author = memberContext.getMember();
 
-        List<Post> posts = postService.findAllByAuthorId(author.getId());
+        List<Post> posts = postService.getAllAuthorId(author.getId());
 
         model.addAttribute("posts", posts);
 
@@ -59,7 +60,7 @@ public class PostController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
     public String detail(@PathVariable long id, Model model) {
-        Post post = postService.findForPrintById(id).get();
+        Post post = postService.getPostId(id).get();
 
         model.addAttribute("post", post);
 
@@ -69,7 +70,7 @@ public class PostController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}/modify")
     public String showModify(@PathVariable long id, Model model) {
-        Post post = postService.findForPrintById(id).get();
+        Post post = postService.getPostId(id).get();
 
         model.addAttribute("post", post);
 
@@ -78,21 +79,21 @@ public class PostController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{id}/modify")
-    public String modifyPost(@Valid PostForm postForm, @PathVariable long id) {
-        Post post = postService.findById(id).get();
+    public String modifyPost(@Valid ModifyPostDto modifyPostDto, @PathVariable long id) {
+        Post post = postService.getPostId(id).get();
 
         if (post == null) {
             return "redirect:/post/" + post.getId() + "?msg=" + Ut.url.encode("%d번 글은 존재하지 않습니다.".formatted(id));
         }
 
-        postService.modify(post, postForm.getSubject(), postForm.getContent());
+        postService.modify(post, modifyPostDto.getSubject(), modifyPostDto.getContent());
         return "redirect:/post/" + post.getId() + "?msg=" + Ut.url.encode("%d번 글이 수정되었습니다.".formatted(post.getId()));
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}/delete")
     public String deletePost (@PathVariable long id) {
-        Post post = postService.findById(id).get();
+        Post post = postService.getPostId(id).get();
 
         if (post == null) {
             return "redirect:/post/" + post.getId() + "?msg=" + Ut.url.encode("%d번 글은 존재하지 않습니다.".formatted(id));
